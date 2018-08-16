@@ -51,7 +51,7 @@ for address, position in zip(addresses, positions):
     client.writeRegisters([address], [0x1030], [1], [struct.pack('<H', 1000)])
     # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
 
-    client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', position)])
+    client.writeRegisters([address], [0x2008], [1], [struct.pack('<f', position)])
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 4)]) # Torque control
 
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
