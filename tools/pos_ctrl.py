@@ -79,7 +79,7 @@ for address, position in zip(addresses, positions):
 
 start_time = time.time()
 count = 0
-while True:
+for i in range(200)
     for address in addresses:
         try:
             data = struct.unpack('<ff', client.readRegisters([address], [0x3000], [2])[0])
