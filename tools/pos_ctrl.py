@@ -14,9 +14,18 @@ if len(sys.argv) != 4:
 port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
 
+kp = 0.1
+ki = 0.001
+
 try:
     addresses = [int(sys.argv[2])]
     positions = [float(sys.argv[3])]
+    try:
+        kp = float(sys.argv[4])
+        ki = float(sys.argv[5])
+    except Exception:
+        print("Using default kp, ki values")
+
 except ValueError:
     addresses = [int(address_str) for address_str in sys.argv[2].split(',')]
     positions = [float(position_str) for position_str in sys.argv[3].split(',')]
@@ -52,6 +61,8 @@ for address, position in zip(addresses, positions):
     # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
 
     client.writeRegisters([address], [0x2008], [1], [struct.pack('<f', position)])
+    client.writeRegisters([address], [0x1009], [1], [struct.pack('<f', kp)])
+    client.writeRegisters([address], [0x100a], [1], [struct.pack('<f', ki)])
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 4)]) # Torque control
 
     # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
