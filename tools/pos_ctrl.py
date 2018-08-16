@@ -7,7 +7,7 @@ from math import sin, cos, pi
 
 PROTOCOL_V2 = 2
 
-if len(sys.argv) != 4 or len(sys.argv) != 6:
+if len(sys.argv) != 4 and len(sys.argv) != 6:
         print("give me a serial port, address, and duty cycle")
         exit()
 
