@@ -324,17 +324,8 @@ void runCurrentControl() {
       vq = parameters.pwm_drive;
 
     } else {
-
-      pid_id.setSetPoint(id_sp);
-      pid_id.setProcessValue(id);
-      pid_id.setBias(id_sp * calibration.motor_resistance);
-
-      pid_iq.setSetPoint(iq_sp);
-      pid_iq.setProcessValue(iq);
-      pid_iq.setBias(iq_sp * calibration.motor_resistance + results.rotor_vel * calibration.motor_torque_const);
-
-      vd = pid_id.compute();
-      vq = pid_iq.compute();
+      vd = 0;//pid_id.compute();
+      vq = iq_sp * calibration.motor_resistance;
     }
 
     
