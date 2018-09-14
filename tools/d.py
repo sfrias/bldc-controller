@@ -54,7 +54,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     # print("Motor %d ready: supply voltage=%fV", address, client.getVoltage(address))
 
     client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', float(0))])
-    client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
+    client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Current control
 
 
 start_time = time.time()
@@ -62,20 +62,40 @@ count = 0
 while True:
     for address in addresses:
         try:
-            data_from_arduino = float(arduino.readline().decode())
-            current_cmd = (data_from_arduino / 1024.0 - 0.5)
-            if count % 1000 == 0:
-                print(current_cmd)
-                print(data_from_arduino)
+            start_time = time.time()
+            raw = arduino.readline()
+            print(raw)
+            data_from_arduino = float(raw.decode())
+            print(time.time() - start_time)
+            current_cmd = 1*(data_from_arduino / 1024.0 - 0.5)
+            if count % 100 == 0:
+                print("current ", current_cmd)
+                print("raw ", data_from_arduino)
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', float(current_cmd))])
 
             # print(address, data)
         except Exception:
             pass
 
-        count += 1
-        if count % 1000 == 0:
-            freq = count / (time.time() - start_time)
-            print("{} \t {}".format(address, freq))
-            sys.stdout.flush()
-    time.sleep(0.01)
+      
+
+# while True:
+#     for address in addresses:
+#         try:
+#             data_from_arduino = float(arduino.readline().decode())
+#             current_cmd = 0.5*(data_from_arduino / 1024.0 - 0.5)
+#             if count % 100 == 0:
+#                 print("current ", current_cmd)
+#                 print("raw ", data_from_arduino)
+#             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', float(current_cmd))])
+
+#             # print(address, data)
+#         except Exception:
+#             pass
+
+#         count += 1
+#         if count % 1000 == 0:
+#             freq = count / (time.time() - start_time)
+#             print("{} \t {}".format(address, freq))
+#             sys.stdout.flush()
+#     time.sleep(0.01)
