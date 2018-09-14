@@ -6,7 +6,6 @@ import csv
 import datetime
 import sys
 import time
-import rospy
 from math import sin, cos, pi
 
 PROTOCOL_V2 = 2
@@ -91,6 +90,9 @@ dirc = 1
 rows = []
 is_done = False
 sent = []
+ser = serial.Serial('/dev/ttyACM0')
+strain_gague = []
+
 while not is_done:
     for address in addresses:
         send = float(count) * intervals
@@ -116,13 +118,13 @@ while not is_done:
             # dirc = -1
             is_done = True
         count += 1
+    ser_bytes = ser.readline()
+    decoded_bytes = str((ser_bytes[0:len(ser_bytes)-2].decode("utf-8")))
+    lst = decoded_bytes.split(',');
+    strain_gague.append([float(lst[0]), float(lst[1])])
 
-rospy.init_node('p')
-rate = rospy.Rate(500) #Make sure this is fast enough to handle our frequency
 
-ser = serial.Serial('/dev/ACM0')
 
-strain_gague = []
 is_done = False
 for x in sent[::-1]:
     count = 0
@@ -155,7 +157,6 @@ for x in sent[::-1]:
     decoded_bytes = str((ser_bytes[0:len(ser_bytes)-2].decode("utf-8")))
     lst = decoded_bytes.split(',');
     strain_gague.append([float(lst[0]), float(lst[1])])
-    rate.sleep()
 
 with open('time_force8.csv', mode='w') as file:
     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
