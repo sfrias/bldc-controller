@@ -8,14 +8,15 @@ DATA_PATH = "dino_raw1"
 DATA_PATH = "dino_raw3"
 DATA_PATH = "dino_raw_higher_load1"
 DATA_PATH = "dino_raw_higher_load"
-data1 = "t0_1.0"
-data2 = "t1_1.0"
-data3 = "t2_1.0"
-data4 = "t3_1.0"
-data5 = "t4_1.0"
+data1 = "s_0_0.8"
+data2 = "s_1_0.8"
+data3 = "s_2_0.8"
+data4 = "v_0_0.8"
+data5 = "v_1_0.8"
+data6 = "v_2_0.8"
 
 
-data_list = [data1, data2, data3, data4, data5]
+data_list = [data1, data2, data3, data4, data5, data6]
 
 #########################################
 l  = 0.008
@@ -70,6 +71,23 @@ def plot_d(data, ti):
 
     ax2.plot(data[:,0], eff, label="efficency", color='r')
     ax2.set_ylim([0.0, 1.0])
+    plt.title("pinch force")
+    plt.xlabel('time')
+    plt.ylabel('')
+    # ax2.legend()
+    fig.savefig("plots/time_" + ti + ".eps", format='eps', dpi=1000)
+
+def plot_o(data, ti):
+    fig, ax1 = plt.subplots()
+    print(max(data[:,2]))
+    print(max(data[:,3]))
+    expected_force = cmd_to_exp(data[:,1])
+    ax1.plot(data[:,0], g*data[:,2], label="mes1")
+    ax1.plot(data[:,0], g*data[:,3], label="mes2")
+    ax1.legend()
+
+    ax2 = ax1.twinx()
+    ax2.plot(data[:,0], data[:,1], label="expected")
     plt.title("pinch force")
     plt.xlabel('time')
     plt.ylabel('')

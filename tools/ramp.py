@@ -18,7 +18,6 @@ if len(sys.argv) != 5:
         print("give me a serial port, address, duty cycle, and data_title")
         exit()
 
-ser = serial.Serial('/dev/ttyACM0')
 title = sys.argv[4]
 
 
@@ -72,10 +71,10 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     # client.writeRegisters([address], [0x1011], [1], [struct.pack('<f', 10.0)])
 
 
-for i in range(10):
+for i in range(100):
     client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', 0.0)])
+    time.sleep(0.05)
 
-start_time = time.time()
 count = 0
 
 
@@ -84,16 +83,18 @@ is_done = False
 sent = []
 strain_gague = []
 
+ser = serial.Serial('/dev/ttyACM0')
+start_time = time.time()
 while not is_done:
     for address in addresses:
         send = float(count) * intervals
         sent.append(send)
-        print(send)
         rows.append([time.time() - start_time, send])
         try:
             # data = struct.unpack('<ff', client.readRegisters([address], [0x3000], [2])[0])
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', send)])
             # print(address, data)
+            print(send)
         except IOError:
             pass
 
