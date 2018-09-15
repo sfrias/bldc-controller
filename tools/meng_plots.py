@@ -8,9 +8,14 @@ DATA_PATH = "dino_raw1"
 DATA_PATH = "dino_raw3"
 DATA_PATH = "dino_raw_higher_load1"
 DATA_PATH = "dino_raw_higher_load"
+data1 = "t0_1.0"
+data2 = "t1_1.0"
+data3 = "t2_1.0"
+data4 = "t3_1.0"
+data5 = "t4_1.0"
 
 
-data_list = [DATA_PATH]
+data_list = [data1, data2, data3, data4, data5]
 
 #########################################
 l  = 0.008
@@ -33,7 +38,7 @@ def calc_F_acme(tau):
     return tau * 2 / ( dm * par )
 
 def cmd_to_exp(cmd):
-    f= calc_F_acme(cmd)
+    f = calc_F_acme(cmd)
     return r1_finger / r2_finger * f * np.cos(angle_grasp)
 
 ####################################

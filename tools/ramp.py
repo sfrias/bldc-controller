@@ -72,6 +72,9 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     # client.writeRegisters([address], [0x1011], [1], [struct.pack('<f', 10.0)])
 
 
+for i in range(10):
+    client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', 0.0)])
+
 start_time = time.time()
 count = 0
 
@@ -107,10 +110,13 @@ while not is_done:
     ser_bytes = ser.readline()
     decoded_bytes = str((ser_bytes[0:len(ser_bytes)-2].decode("utf-8")))
     lst = decoded_bytes.split(',');
-    strain_gague.append([float(lst[0]), float(lst[1])])
+    try:
+        strain_gague.append([float(lst[0]), float(lst[1])])
+    except:
+        strain_gague.append([float(0), float(0)])
 
 is_done = False
-for x in (sent[::-1] + [-x for x in sent][0:500]) :
+for x in (sent[::-1] + [-x for x in sent][0:200]) :
     count = 0
     for address in addresses:
         send = x
@@ -140,8 +146,13 @@ for x in (sent[::-1] + [-x for x in sent][0:500]) :
     lst = decoded_bytes.split(',');
     strain_gague.append([float(lst[0]), float(lst[1])])
 
+    try:
+        strain_gague.append([float(lst[0]), float(lst[1])])
+    except:
+        strain_gague.append([float(0), float(0)])
 
-with open( title + "_{}".append(duty_cycle) +  '.csv', mode='w') as file:
+
+with open( title + "_{}".format(duty_cycle) +  '.csv', mode='w') as file:
     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(["time", "command", "strain1", "strain2"])
     for i, r in enumerate(rows):
