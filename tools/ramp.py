@@ -8,11 +8,23 @@ import sys
 import time
 from math import sin, cos, pi
 
-PROTOCOL_V2 = 2
 
-if len(sys.argv) != 4:
-        print("give me a serial port, address, and duty cycle")
+intervals = 0.0002
+
+
+
+
+if len(sys.argv) != 5:
+        print("give me a serial port, address, duty cycle, and data_title")
         exit()
+
+ser = serial.Serial('/dev/ttyACM0')
+title = sys.argv[4]
+
+
+####################################################################################################################
+
+PROTOCOL_V2 = 2
 
 port = sys.argv[1]
 s = serial.Serial(port=port, baudrate=COMM_DEFAULT_BAUD_RATE, timeout=0.1)
@@ -62,13 +74,11 @@ for address, duty_cycle in zip(addresses, duty_cycles):
 
 start_time = time.time()
 count = 0
-intervals = 0.0002
 
 
 rows = []
 is_done = False
 sent = []
-ser = serial.Serial('/dev/ttyACM1')
 strain_gague = []
 
 while not is_done:
@@ -100,7 +110,7 @@ while not is_done:
     strain_gague.append([float(lst[0]), float(lst[1])])
 
 is_done = False
-for x in (sent[::-1] + [-x for x in sent][0:1000]) :
+for x in (sent[::-1] + [-x for x in sent][0:500]) :
     count = 0
     for address in addresses:
         send = x
@@ -131,11 +141,8 @@ for x in (sent[::-1] + [-x for x in sent][0:1000]) :
     strain_gague.append([float(lst[0]), float(lst[1])])
 
 
-with open('dino_raw_higher_load1.csv', mode='w') as file:
+with open( title + "_{}".append(duty_cycle) +  '.csv', mode='w') as file:
     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer.writerow(["time", "command", "strain1", "strain2"])
     for i, r in enumerate(rows):
         writer.writerow(r + strain_gague[i])
-print("total real time")
-print(start_time - time.time())
-print("expected time")
-print(3 * duty_cycle / intervals * 0.005)
