@@ -43,6 +43,7 @@ for address, duty_cycle in zip(addresses, duty_cycles):
         try:
             client.writeRegisters([address], [0x1100], [1], [struct.pack('<f', calibration_obj['eac_scale'])])
             client.writeRegisters([address], [0x1101], [1], [struct.pack('<f', calibration_obj['eac_offset'])])
+            client.writeRegisters([address], [0x1011], [1], [struct.pack('<f', 100.00)])
             eac_table_len = len(calibration_obj['eac_table'])
             slice_len = 64
             for i in range(0, eac_table_len, slice_len):
@@ -58,39 +59,16 @@ for address, duty_cycle in zip(addresses, duty_cycles):
     client.writeRegisters([address], [0x2000], [1], [struct.pack('<B', 2)]) # Torque control
     # client.writeRegisters([address], [0x1011], [1], [struct.pack('<f', 10.0)])
 
-    # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 10.0))
-    # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
-    # if address in has_21_erevs_per_mrev:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.55))
-    # else:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.45))
-    # client.writeRegisters(address, 0x2007, 1, struct.pack('<f', duty_cycle))
-    # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 3) ) # Velocity control
-
-    # client.writeRegisters(address, 0x1007, 1, struct.pack('<f', 2.0))
-    # client.writeRegisters(address, 0x1008, 1, struct.pack('<f', 0.1))
-    # client.writeRegisters(address, 0x1009, 1, struct.pack('<f', 25.0))
-    # client.writeRegisters(address, 0x100a, 1, struct.pack('<f', 0.01))
-    # if address in has_21_erevs_per_mrev:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 0.25))
-    # else:
-    #     client.writeRegisters(address, 0x1011, 1, struct.pack('<f', 1.00))
-    # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', 20.0))
-    # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
-    # client.writeRegisters(address, 0x2000, 1, struct.pack('<B', 4) ) # Position control
-
-    # print struct.unpack('<f', client.readRegisters(address, 0x1003, 1))
 
 start_time = time.time()
 count = 0
-intervals = 0.001
-dirc = 1
+intervals = 0.0002
 
 
 rows = []
 is_done = False
 sent = []
-ser = serial.Serial('/dev/ttyACM0')
+ser = serial.Serial('/dev/ttyACM1')
 strain_gague = []
 
 while not is_done:
@@ -102,7 +80,6 @@ while not is_done:
         try:
             # data = struct.unpack('<ff', client.readRegisters([address], [0x3000], [2])[0])
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', send)])
-            time.sleep(0.01)
             # print(address, data)
         except IOError:
             pass
@@ -115,7 +92,6 @@ while not is_done:
             sys.stdout.flush()
 
         if duty_cycle == send:
-            # dirc = -1
             is_done = True
         count += 1
     ser_bytes = ser.readline()
@@ -123,10 +99,8 @@ while not is_done:
     lst = decoded_bytes.split(',');
     strain_gague.append([float(lst[0]), float(lst[1])])
 
-
-
 is_done = False
-for x in sent[::-1]:
+for x in (sent[::-1] + [-x for x in sent][0:1000]) :
     count = 0
     for address in addresses:
         send = x
@@ -135,7 +109,6 @@ for x in sent[::-1]:
         try:
             # data = struct.unpack('<ff', client.readRegisters([address], [0x3000], [2])[0])
             client.writeRegisters([address], [0x2006], [1], [struct.pack('<f', send)])
-            time.sleep(0.01)
             # print(address, data)
         except:
             print(error)
@@ -148,8 +121,7 @@ for x in sent[::-1]:
             print("hello!")
             sys.stdout.flush()
 
-        if duty_cycle < 0:
-            dirc = -1
+        if -duty_cycle < 0:
             is_done = True
         count += 1
 
@@ -158,42 +130,12 @@ for x in sent[::-1]:
     lst = decoded_bytes.split(',');
     strain_gague.append([float(lst[0]), float(lst[1])])
 
-with open('time_force8.csv', mode='w') as file:
+
+with open('dino_raw_higher_load1.csv', mode='w') as file:
     writer = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     for i, r in enumerate(rows):
         writer.writerow(r + strain_gague[i])
-    time.sleep(0.01)
-
-# t = 0
-# ts = 0.01
-# amplitude = 0.5
-# frequency = 0.5
-# offset, = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))
-# while True:
-#     position_sp = offset + amplitude * (1 - cos(2 * pi * frequency * t))
-#     velocity_sp = amplitude * sin(2 * pi * frequency * t) * 2 * pi * frequency
-#     # client.writeRegisters(address, 0x1012, 1, struct.pack('<f', abs(velocity_sp)))
-#     # client.writeRegisters(address, 0x2008, 1, struct.pack('<f', position_sp))
-#     # position, = struct.unpack('<f', client.readRegisters(address, 0x3000, 1))
-#     client.writeRegisters(address, 0x2007, 1, struct.pack('<f', velocity_sp))
-#     time.sleep(ts)
-#     t += ts
-
-# while True:
-#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', duty_cycle))
-#     time.sleep(2)
-#     client.writeRegisters(address, 0x2008, 1, struct.pack('<f', -duty_cycle))
-#     time.sleep(2)
-
-# while True:
-#     try:
-#         # adc_averages = struct.unpack('<7f', client.readRegisters(address, 0x0200, 7))
-#         # print "ia:{: > 7.3f} ib:{: > 7.3f} ic:{: > 7.3f} va:{: > 7.3f} vb:{: > 7.3f} vc:{: > 7.3f} vin:{: > 7.3f}".format(*adc_averages)
-#         data = struct.unpack('<2f', client.readRegisters(address, 0x010c, 2))
-#         print "id:{: > 7.3f} iq:{: > 7.3f}".format(*data)
-#         # print struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-#     except IOError as e:
-#         print e
-#     # angle = struct.unpack('<f', client.readRegisters(address, 0x8001, 1))[0]
-#     # print angle
-#     time.sleep(0.5)
+print("total real time")
+print(start_time - time.time())
+print("expected time")
+print(3 * duty_cycle / intervals * 0.005)
