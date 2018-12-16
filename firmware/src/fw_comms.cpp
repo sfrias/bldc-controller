@@ -185,6 +185,16 @@ size_t commsRegAccessHandler(comm_addr_t start_addr, size_t reg_count, uint8_t *
           handleVarAccess(flag, buf, index, buf_size, access_type, errors);
           break;
         }
+        case 0x300c: // Accelerometer Z (m/s^2)
+          handleVarAccess(results.duty0, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x300d: // Accelerometer Z (m/s^2)
+          handleVarAccess(results.duty1, buf, index, buf_size, access_type, errors);
+          break;
+        case 0x300e: // Accelerometer Z (m/s^2)
+          handleVarAccess(results.duty2, buf, index, buf_size, access_type, errors);
+          break;
+
         
         default:
           errors |= COMM_ERRORS_INVALID_ARGS;

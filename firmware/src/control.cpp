@@ -185,6 +185,8 @@ void estimateState() {
   recorder_new_data[recorder_channel_vb] = results.average_vb;
   recorder_new_data[recorder_channel_vc] = results.average_vc;
   recorder_new_data[recorder_channel_vin] = results.average_vin;
+  recorder_new_data[recorder_channel_vd] = results.vd;
+  recorder_new_data[recorder_channel_vq] = results.vq;
   recorder_new_data[recorder_channel_rotor_pos] = results.rotor_pos;
   recorder_new_data[recorder_channel_rotor_vel] = results.rotor_vel;
 
@@ -244,8 +246,12 @@ void runCurrentControl() {
     float ialpha, ibeta;
     transformClarke(results.average_ia, results.average_ib, results.average_ic, ialpha, ibeta);
 
+    float valpha, vbeta;
+    transformClarke(results.average_va, results.average_vb, results.average_vc, valpha, vbeta);
+
     if (calibration.flip_phases) {
       ibeta = -ibeta;
+      vbeta = -vbeta;
     }
 
     float mech_pos = results.enc_pos - calibration.erev_start * rad_per_enc_tick;
@@ -256,6 +262,11 @@ void runCurrentControl() {
 
     float id, iq;
     transformPark(ialpha, ibeta, cos_theta, sin_theta, id, iq);
+
+    float vd_emf, vq_emf;
+    transformPark(valpha, vbeta, cos_theta, sin_theta, vd_emf, vq_emf);
+    results.vd = vd_emf;
+    results.vq = vq_emf;
 
     pid_id.setMode(AUTO_MODE);
     pid_iq.setMode(AUTO_MODE);
@@ -285,7 +296,7 @@ void runCurrentControl() {
 
     pid_iq.setSetPoint(iq_sp);
     pid_iq.setProcessValue(iq);
-    pid_iq.setBias(iq_sp * calibration.motor_resistance); // + 0 * (results.rotor_vel * calibration.motor_torque_const));
+    pid_iq.setBias(iq_sp * calibration.motor_resistance + 0 * (results.rotor_vel * calibration.motor_torque_const));
 
     float vd = pid_id.compute();
     float vq = pid_iq.compute();
@@ -299,13 +310,20 @@ void runCurrentControl() {
     if (calibration.flip_phases) {
       vbeta_norm = -vbeta_norm;
     }
-
+  
     float duty0, duty1, duty2;
     modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
+    //duty0 = 0.55;
+    //duty1 = 0.45;
+    //duty2 = 0.55;
 
     gate_driver.setPWMDutyCycle(0, duty0);
     gate_driver.setPWMDutyCycle(1, duty1);
     gate_driver.setPWMDutyCycle(2, duty2);
+
+    results.duty0 = duty0;
+    results.duty1 = duty1;
+    results.duty2 = duty2;
 
     results.foc_d_current = id;
     results.foc_q_current = iq;

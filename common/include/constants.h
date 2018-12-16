@@ -33,13 +33,13 @@ constexpr float current_control_interval = 1.0f / current_control_freq;
 constexpr float velocity_control_interval = current_control_interval;
 constexpr float position_control_interval = current_control_interval;
 
-constexpr size_t ivsense_rolling_average_count = 5;
+constexpr size_t ivsense_rolling_average_count = 1;
 
 constexpr unsigned int ivsense_samples_per_cycle = 1;
 
 constexpr size_t ivsense_sample_buf_depth = ivsense_samples_per_cycle * 2; // "double-buffering"
 
-constexpr size_t ivsense_channel_count = 7; // 4 voltage channels, 3 current channels
+constexpr size_t ivsense_channel_count = 8; // 4 voltage channels, 3 current channels
 
 constexpr size_t ivsense_channel_ia = 0;    // Phase A current channel index
 constexpr size_t ivsense_channel_ib = 1;    // Phase B current channel index
@@ -73,7 +73,7 @@ constexpr float ivsense_current_per_count = ivsense_current_zero_voltage / (ivse
 /* ADC Value zero current is centered on */
 constexpr float ivsense_count_zero_current = ivsense_zero_current_voltage / adc_vref_voltage * adc_max_value;
 
-constexpr size_t recorder_channel_count = 9;
+constexpr size_t recorder_channel_count = 11;
 
 constexpr size_t recorder_channel_ia = 0;           // Phase A current channel index
 constexpr size_t recorder_channel_ib = 1;           // Phase B current channel index
@@ -82,8 +82,10 @@ constexpr size_t recorder_channel_va = 3;           // Phase A voltage channel i
 constexpr size_t recorder_channel_vb = 4;           // Phase B voltage channel index
 constexpr size_t recorder_channel_vc = 5;           // Phase C voltage channel index
 constexpr size_t recorder_channel_vin = 6;          // Supply voltage channel index
-constexpr size_t recorder_channel_rotor_pos = 7;    // Rotor position channel index
-constexpr size_t recorder_channel_rotor_vel = 8;    // Rotor velocity channel index
+constexpr size_t recorder_channel_vd = 7;          // Supply voltage channel index
+constexpr size_t recorder_channel_vq = 8;          // Supply voltage channel index
+constexpr size_t recorder_channel_rotor_pos = 9;    // Rotor position channel index
+constexpr size_t recorder_channel_rotor_vel = 10;    // Rotor velocity channel index
 
 constexpr size_t recorder_max_samples = 2000;
 

@@ -28,6 +28,13 @@ struct Results {
   float average_ib = 0;                     // Average current into phase B (amperes)
   float average_ic = 0;                     // Average current into phase C (amperes)
 
+  float vd = 0;                             // Quadrature Voltage (volts)
+  float vq = 0;                             // Quadrature Voltage (volts)
+
+  float duty0 = 0;                          // Duty cycle of phase A
+  float duty1 = 0;                          // Duty cycle of phase B
+  float duty2 = 0;                          // Duty cycle of phase C
+
   int32_t xl_x = 0;                         // X-acceleration in milli-g's
   int32_t xl_y = 0;                         // Y-acceleration in milli-g's
   int32_t xl_z = 0;                         // Z-acceleration in milli-g's
