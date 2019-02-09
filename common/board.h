@@ -314,7 +314,7 @@
  * PA8  - MDRV_PWM_C                (alternate 1).
  * PA9  - MDRV_PWM_B                (alternate 1).
  * PA10 - MDRV_PWM_A                (alternate 1).
- * PA11 - ENC_ALIGN                 (alternate 10).
+ * PA11 - ENC_ALIGN                 (alternate 1).
  * PA12 - ENC_PROG                  (alternate 10).
  * PA13 - SWDIO                     (alternate 0).
  * PA14 - SWCLK                     (alternate 0).
@@ -395,7 +395,7 @@
                                      PIN_ODR_LOW(GPIOA_MDRV_PWM_C) |        \
                                      PIN_ODR_LOW(GPIOA_MDRV_PWM_B) |        \
                                      PIN_ODR_LOW(GPIOA_MDRV_PWM_A) |        \
-                                     PIN_ODR_HIGH(GPIOA_ENC_ALIGN) |        \
+                                     PIN_ODR_LOW(GPIOA_ENC_ALIGN) |         \
                                      PIN_ODR_HIGH(GPIOA_ENC_PROG) |         \
                                      PIN_ODR_HIGH(GPIOA_SWDIO) |            \
                                      PIN_ODR_HIGH(GPIOA_SWCLK) |            \
@@ -411,7 +411,7 @@
 #define VAL_GPIOA_AFRH              (PIN_AFIO_AF(GPIOA_MDRV_PWM_C, 1U) |    \
                                      PIN_AFIO_AF(GPIOA_MDRV_PWM_B, 1U) |    \
                                      PIN_AFIO_AF(GPIOA_MDRV_PWM_A, 1U) |    \
-                                     PIN_AFIO_AF(GPIOA_ENC_ALIGN, 10U) |    \
+                                     PIN_AFIO_AF(GPIOA_ENC_ALIGN, 1U) |     \
                                      PIN_AFIO_AF(GPIOA_ENC_PROG, 10U) |     \
                                      PIN_AFIO_AF(GPIOA_SWDIO, 0U) |         \
                                      PIN_AFIO_AF(GPIOA_SWCLK, 0U) |         \

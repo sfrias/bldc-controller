@@ -112,11 +112,11 @@
       <pin11
         ID="ENC_ALIGN"
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
         Resistor="Floating"
         Mode="Alternate"
-        Alternate="10" />
+        Alternate="1" />
       <pin12
         ID="ENC_PROG"
         Type="PushPull"

@@ -239,6 +239,26 @@ void runCurrentControl() {
      * Run field-oriented control
      */
 
+    //if (results.duty_a > 0.9)
+    //{
+    //  results.average_ia = -(results.average_ib + results.average_ic);
+    //}
+    //else if (results.duty_b > 0.9)
+    //{
+    //  results.average_ib = -(results.average_ia + results.average_ic);
+    //}
+    //else if (results.duty_c > 0.9)
+    //{
+    //  results.average_ic = -(results.average_ia + results.average_ib);
+    //}
+    //// If all are good, use all the balanced current assumption to use all three channels to improve each channel's measurement
+    //else if (results.duty_a <= 0.9 && results.duty_b <= 0.9 && results.duty_c <= 0.9)
+    //{
+    //  results.average_ia = results.average_ia / 2.0 - (results.average_ib + results.average_ic) / 2.0;
+    //  results.average_ib = results.average_ib / 2.0 - (results.average_ia + results.average_ic) / 2.0;
+    //  results.average_ic = results.average_ic / 2.0 - (results.average_ia + results.average_ib) / 2.0;
+    //}
+
     float ialpha, ibeta;
     transformClarke(results.average_ia, results.average_ib, results.average_ic, ialpha, ibeta);
 
@@ -261,8 +281,9 @@ void runCurrentControl() {
     pid_id.setTunings(calibration.foc_kp_d, calibration.foc_ki_d, 0.0f);
     pid_iq.setTunings(calibration.foc_kp_q, calibration.foc_ki_q, 0.0f);
 
-    pid_id.setOutputLimits(-results.average_vin, results.average_vin);
-    pid_iq.setOutputLimits(-results.average_vin, results.average_vin);
+    float reduction = 1;
+    pid_id.setOutputLimits(-results.average_vin*reduction, results.average_vin*reduction);
+    pid_iq.setOutputLimits(-results.average_vin*reduction, results.average_vin*reduction);
 
     float id_sp, iq_sp;
     if (parameters.control_mode == control_mode_foc_current) {
@@ -298,13 +319,11 @@ void runCurrentControl() {
       vbeta_norm = -vbeta_norm;
     }
 
-    float duty0, duty1, duty2;
-    modulator.computeDutyCycles(valpha_norm, vbeta_norm, duty0, duty1, duty2);
+    modulator.computeDutyCycles(valpha_norm, vbeta_norm, results.duty_a, results.duty_b, results.duty_c);
 
-    float reduction = 0.7;
-    gate_driver.setPWMDutyCycle(0, duty0 * reduction);
-    gate_driver.setPWMDutyCycle(1, duty1 * reduction);
-    gate_driver.setPWMDutyCycle(2, duty2 * reduction);
+    gate_driver.setPWMDutyCycle(0, results.duty_a);
+    gate_driver.setPWMDutyCycle(1, results.duty_b);
+    gate_driver.setPWMDutyCycle(2, results.duty_c);
 
     results.foc_d_current = id;
     results.foc_q_current = iq;

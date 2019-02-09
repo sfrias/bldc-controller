@@ -31,10 +31,10 @@ PWMConfig motor_pwm_config = {
   motor_pwm_clock_freq / motor_pwm_cycle_freq, 	// PWM period (ticks)
   motorPWMPeriodicCallback,                		  // PWM callback
   {
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_ACTIVE_LOW, NULL},
-    {PWM_OUTPUT_DISABLED, NULL}
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL},
+    {PWM_OUTPUT_ACTIVE_HIGH, NULL}
   },
   0,                                // CR2 (select enable signal as TRGO output)
   0,                                            // BDTR
@@ -110,7 +110,7 @@ static const ADCConversionGroup ivsense_adc_group = {
   ivsenseADCEndCallback,
   ivsenseADCErrorCallback,
   0,                                        // CR1
-  ADC_CR2_EXTSEL_3 | ADC_CR2_EXTEN_0,       // CR2 (begin conversion on rising edge of TIM3 TRGO)
+  ~ADC_CR2_JEXTSEL | ADC_CR2_JEXTEN_1,       // CR2 (begin conversion on falling edge of TIM1 CC4)
   ADC_SMPR1_SMP_AN10(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN11(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN12(ADC_SAMPLE_15)
       | ADC_SMPR1_SMP_AN13(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN14(ADC_SAMPLE_15) | ADC_SMPR1_SMP_AN15(ADC_SAMPLE_15), // SMPR1
   ADC_SMPR2_SMP_AN8(ADC_SAMPLE_15),         // SMPR2
@@ -159,15 +159,36 @@ void startPeripherals() {
   // Configure motor PWM timer and pause it
   pwmStart(&PWMD1, &motor_pwm_config);
   PWMD1.tim->CR1 &= ~TIM_CR1_CEN;
-  PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS) 
-                   | TIM_CR1_CMS_0 | TIM_CR1_CMS_1 // (TIM1_CMS = 11) Enable center-aligned PWM
+  // Center aligned section 17.3.2
+  PWMD1.tim->CR1 = (PWMD1.tim->CR1 & ~TIM_CR1_CMS & ~TIM_CR1_URS) 
                    ;
+  PWMD1.tim->CR2 = (PWMD1.tim->CR2 & ~TIM_CR2_CCDS)
+                   //| TIM_CR2_MMS_1                  // (TIM1_MMS = 010) Set Timer 1 to update trigger mode 
+                   ;
+  // Set up timer in center aligned mode 2
+  PWMD1.tim->CR1 |= STM32_TIM_CR1_CMS(0x02);
+
+  // Set the Capture Compare Register value
+  PWMD1.tim->CCR[3] = 0; // Set up counter for DMA read
+  PWMD1.tim->DIER = (PWMD1.tim->DIER) | TIM_DIER_CC4DE;
+  // Write to PWMD1.tim CCMR2
+  PWMD1.tim->CCMR2 = (PWMD1.tim->CCMR2 & ~TIM_CCMR2_OC4PE) | (0x0008 << 8); // Configure CC4 as output
+  PWMD1.tim->EGR = TIM_EGR_UG;                      // Enable auto-update
+
+  // center aligned mode would generate update events (aka DMA-requests)
+  // on overflow and underflow situations. Repetion counter waits
+  // N+1 events before next interrupt/DMA request is generated.
+  // So now DMA is only triggered on underflow with pwm-pulse in between.
+  //PWMD1.tim->RCR = 0x01;
+
+  // OS resets UDE-bit, so set it here again
+  PWMD1.tim->DIER |= STM32_TIM_DIER_UDE;
+
 
   // Start gate driver
   gate_driver.start();
 
   // Start encoder
-  //startEncoder();
   encoder.start();
 
   // Start temperature sensor
@@ -183,23 +204,24 @@ void startPeripherals() {
   // Configure ADC trigger timer and pause it
   // Note: no PWM outputs are generated, this is just a convenient way to configure a timer
   pwmStart(&PWMD3, &adc_trigger_pwm_config);
-  PWMD3.tim->CR1 &= ~TIM_CR1_CEN;
+  //PWMD3.tim->CR1 &= ~TIM_CR1_CEN;
 
   // From section 18.3.15 of the STM32f405 reference manual
   // Set up Timer 1 (Motor PWM Output) as a master for Timer 3 (ADC Sampler)
-  PWMD1.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM1_MMS = 010) Set Timer 1 to send trigger on count
+  /*
   PWMD3.tim->CR2  = TIM_CR2_MMS_1;                                       // (TIM3_MMS = 010) Set Update signal as TRGO Output
   PWMD3.tim->SMCR = (PWMD3.tim->SMCR & ~TIM_SMCR_TS & ~TIM_SMCR_SMS)     // (TIM3_TS = 000) Enable counter on TIM1 (motor PWM) TRGO rising edge
                     | TIM_SMCR_SMS_2 | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_0   // (TIM3_SMS = 111) External clock mode
                     ;
+  */
 
   // Reset timer counters
   PWMD1.tim->CNT = 0;
-  PWMD3.tim->CNT = 0;
+  //PWMD3.tim->CNT = 0;
 
   // Start motor PWM timer, which also starts the ADC trigger timer
   PWMD1.tim->CR1 |= TIM_CR1_CEN;
-  PWMD3.tim->CR1 |= TIM_CR1_CEN;
+  //PWMD3.tim->CR1 |= TIM_CR1_CEN;
 }
 
 static uint16_t ledPWMPulseWidthFromIntensity(uint8_t intensity) {

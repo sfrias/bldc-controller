@@ -30,6 +30,10 @@ struct Results {
   float average_ib = 0;                     // Average current into phase B (amperes)
   float average_ic = 0;                     // Average current into phase C (amperes)
 
+  float duty_a = 0;
+  float duty_b = 0;
+  float duty_c = 0;
+
   int32_t xl_x = 0;                         // X-acceleration in milli-g's
   int32_t xl_y = 0;                         // Y-acceleration in milli-g's
   int32_t xl_z = 0;                         // Z-acceleration in milli-g's
